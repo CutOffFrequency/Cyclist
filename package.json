@@ -1,5 +1,5 @@
 {
-  "name": "linked",
+  "name": "doublylinkedlist",
   "version": "1.0.0",
   "description": "simple linked list library with minimal dependencies",
   "main": "index.js",
