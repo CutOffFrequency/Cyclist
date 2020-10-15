@@ -1,15 +1,15 @@
 export interface Node<T> {
   data: T
-  next: () => Node<T>
-  previous: () => Node<T>
+  next?: () => Node<T>
+  previous?: () => Node<T>
 }
 
 export class Node<T> {
   constructor(args: Node<T>) {
     const { data, next, previous } = args
     this.data = data
-    this.next = next
-    this.previous = previous
+    this.next = next ? next : null
+    this.previous = previous ? previous : null
   }
 }
 
@@ -19,14 +19,23 @@ export interface LinkedList<T> {
   size: number
 }
 
+export interface LinkedListConstructorArgs<T> {
+  head: Node<T>
+  tail?: Node<T>
+  size?: number
+}
+
+export type NodeFunction<T> = (node: Node<T>) => Node<T>
+
 // Keeping track of both a head and tail for a cyclical doubly linked list may seem redundant
 // since the tail is just the current head's previous node however;
 // when adding new nodes at the head we don't need to iterate through the entire list
 export class LinkedList<T> {
-  constructor(args: LinkedList<T>) {
+  constructor(args: LinkedListConstructorArgs<T>) {
     const { head, tail, size } = args
-    this.head = null
-    this.tail = null
+    this.head = head ? head : null
+    this.tail = tail ? tail : null
+    this.size = size ? size : 0
   }
 
   insertAtHead(data: T) {
@@ -44,6 +53,8 @@ export class LinkedList<T> {
     this.head = newNode
     if (!this.tail) {
       this.tail = newNode
+    } else {
+      this.tail.next = () => this.head
     }
 
     return (this.size += 1)
@@ -64,18 +75,65 @@ export class LinkedList<T> {
     this.tail = newNode
     if (!this.head) {
       this.head = newNode
+    } else {
+      this.head.previous = () => this.tail
     }
 
     return (this.size += 1)
   }
 
+  // the intention behind this method is to provide baked in iteration in both directions
+  // (forward and backward) with a mechanism to execute a user provided side effect
+  // (extensibility principle) in the form of a callback. When the targeted node is found
+  // this method will return the application of the callback to the node, if the user does
+  // not supply a callback, this method will instead return the targeted node. This method is
+  // unique in that if the targeted index is out of bounds, it will return undefined
+  iterateThroughList(
+      targetIndex: number,
+      sideEffect: NodeFunction<T>,
+      previousIndex: number = 0,
+      previousNode: Node<T> = this.head
+    ) {
+    if (Math.abs(targetIndex) >= this.size ) return
+
+    if (targetIndex === 0) {
+      return sideEffect ? sideEffect(this.head) : this.head
+    }
+
+    let iteration, currentIndex, currentNode
+
+    if ( targetIndex > 0 && targetIndex > previousIndex + 1 ) {
+      iteration = 'increment'
+      currentIndex = previousIndex + 1
+      currentNode = previousNode.next()
+    } else if (targetIndex < 0 && targetIndex < previousIndex - 1) {
+      iteration = 'decrement'
+      currentIndex = previousIndex - 1
+      currentNode = previousNode.previous()
+    } else {
+      iteration = 'done'
+    }
+
+    switch (iteration) {
+      case 'increment':
+        return this.iterateThroughList(targetIndex, sideEffect, currentIndex, currentNode)
+      case 'decrement':
+        return this.iterateThroughList(targetIndex, sideEffect, currentIndex, currentNode)
+      case 'done':
+        return sideEffect ? sideEffect(currentNode) : currentNode
+      default:
+        return new Error('invalid case for iteration')
+    }
+  }
+
+  // to do: refactor with newly added iteration method
   insertAtIndex(data: T, index: number) {
     if (index === 0) {
-      this.insertAtHead(data)
+      return this.insertAtHead(data)
     }
 
     if (index >= this.size) {
-      this.insertAtTail(data)
+      return this.insertAtTail(data)
     }
 
     let currentNode = this.head
@@ -94,7 +152,7 @@ export class LinkedList<T> {
       return (this.size += 1)
     }
 
-    while (count < index) {
+    while (count < this.size) {
       if (count === index - 1) {
         previousNode = currentNode
         nextNode = currentNode.next()
@@ -110,18 +168,6 @@ export class LinkedList<T> {
   }
 
   removeAtIndex(index: number) {
-    if (index === 0) {
-      const previousHead = this.head
-      this.head = previousHead.next()
-      this.tail.next = () => this.head
-      return (this.size -= 1)
-    }
 
-    if (index === this.size - 1) {
-      const previousTail = this.tail
-      this.tail = previousTail.previous()
-      this.tail.next = () => this.head
-      return (this.size -= 1)
-    }
   }
 }
