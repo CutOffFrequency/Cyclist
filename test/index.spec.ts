@@ -1,6 +1,6 @@
-import { LinkedList, Node } from '../index'
-import { describe, it } from 'mocha'
-import { assert } from 'chai'
+import {LinkedList, Node} from '../index'
+import {describe, it} from 'mocha'
+import {assert} from 'chai'
 
 describe('LinkedList', () => {
   describe('constructor', () => {
@@ -20,11 +20,9 @@ describe('LinkedList', () => {
     })
   })
 
-
   describe('insertAtHead', () => {
-
     describe('with no previous nodes', () => {
-      const newList: LinkedList<any> = new LinkedList({
+      const newList: LinkedList<number> = new LinkedList({
         head: undefined,
       })
 
@@ -50,7 +48,7 @@ describe('LinkedList', () => {
     })
 
     describe('with a previous node', () => {
-      const newList: LinkedList<any> = new LinkedList({
+      const newList: LinkedList<number> = new LinkedList({
         head: undefined,
       })
 
@@ -84,7 +82,7 @@ describe('LinkedList', () => {
     })
 
     describe('with two previous nodes', () => {
-      const newList: LinkedList<any> = new LinkedList({
+      const newList: LinkedList<number> = new LinkedList({
         head: undefined,
       })
 
@@ -124,7 +122,7 @@ describe('LinkedList', () => {
 
   describe('insertAtTail', () => {
     describe('with no previous nodes', () => {
-      const newList: LinkedList<any> = new LinkedList({
+      const newList: LinkedList<number> = new LinkedList({
         head: undefined,
       })
 
@@ -150,7 +148,7 @@ describe('LinkedList', () => {
     })
 
     describe('with a previous node', () => {
-      const newList: LinkedList<any> = new LinkedList({
+      const newList: LinkedList<number> = new LinkedList({
         head: undefined,
       })
 
@@ -183,9 +181,8 @@ describe('LinkedList', () => {
       })
     })
 
-
     describe('with two previous nodes', () => {
-      const newList: LinkedList<any> = new LinkedList({
+      const newList: LinkedList<number> = new LinkedList({
         head: undefined,
       })
 
@@ -222,5 +219,4 @@ describe('LinkedList', () => {
       })
     })
   })
-
 })

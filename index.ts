@@ -6,7 +6,7 @@ export interface Node<T> {
 
 export class Node<T> {
   constructor(args: Node<T>) {
-    const { data, next, previous } = args
+    const {data, next, previous} = args
     this.data = data
     this.next = next ? next : null
     this.previous = previous ? previous : null
@@ -26,19 +26,23 @@ export interface LinkedListConstructorArgs<T> {
 }
 
 export type NodeFunction<T> = (node: Node<T>) => Node<T>
+export type NodeIndex = number
+export type ListSize = number
+export type MaybeNode<T> = Node<T> | undefined
+export type SideEffect = () => void
 
 // Keeping track of both a head and tail for a cyclical doubly linked list may seem redundant
 // since the tail is just the current head's previous node however;
 // when adding new nodes at the head we don't need to iterate through the entire list
 export class LinkedList<T> {
   constructor(args: LinkedListConstructorArgs<T>) {
-    const { head, tail, size } = args
+    const {head, tail, size} = args
     this.head = head ? head : null
     this.tail = tail ? tail : null
     this.size = size ? size : 0
   }
 
-  insertAtHead(data: T) {
+  insertAtHead(data: T): ListSize {
     const previousHead = this.head
     const newNode: Node<T> = new Node({
       data,
@@ -60,7 +64,7 @@ export class LinkedList<T> {
     return (this.size += 1)
   }
 
-  insertAtTail(data: T) {
+  insertAtTail(data: T): ListSize {
     const previousTail = this.tail
     const newNode: Node<T> = new Node({
       data,
@@ -89,36 +93,44 @@ export class LinkedList<T> {
   // not supply a callback, this method will instead return the targeted node. This method is
   // unique in that if the targeted index is out of bounds, it will return undefined
   iterateThroughList(
-      targetIndex: number,
-      sideEffect: NodeFunction<T>,
-      previousIndex: number = 0,
-      previousNode: Node<T> = this.head
-    ) {
-    if (Math.abs(targetIndex) >= this.size ) return
+    targetIndex: number,
+    sideEffect: NodeFunction<T>,
+    previousIndex = 0,
+    previousNode: Node<T> = this.head
+  ): MaybeNode<T> | SideEffect | Error {
+    if (Math.abs(targetIndex) >= this.size) return
 
     if (targetIndex === 0) {
       return sideEffect ? sideEffect(this.head) : this.head
     }
 
-    let iteration, currentIndex, currentNode
+    let iteration, currentNode
 
-    if ( targetIndex > 0 && targetIndex > previousIndex + 1 ) {
+    if (targetIndex > 0 && targetIndex > previousIndex + 1) {
       iteration = 'increment'
-      currentIndex = previousIndex + 1
-      currentNode = previousNode.next()
     } else if (targetIndex < 0 && targetIndex < previousIndex - 1) {
       iteration = 'decrement'
-      currentIndex = previousIndex - 1
-      currentNode = previousNode.previous()
     } else {
       iteration = 'done'
+      currentNode =
+        targetIndex > 0 ? previousNode.next() : previousNode.previous()
     }
 
     switch (iteration) {
       case 'increment':
-        return this.iterateThroughList(targetIndex, sideEffect, currentIndex, currentNode)
+        return this.iterateThroughList(
+          targetIndex,
+          sideEffect,
+          previousIndex + 1,
+          previousNode.next()
+        )
       case 'decrement':
-        return this.iterateThroughList(targetIndex, sideEffect, currentIndex, currentNode)
+        return this.iterateThroughList(
+          targetIndex,
+          sideEffect,
+          previousIndex - 1,
+          previousNode.previous()
+        )
       case 'done':
         return sideEffect ? sideEffect(currentNode) : currentNode
       default:
@@ -127,7 +139,7 @@ export class LinkedList<T> {
   }
 
   // to do: refactor with newly added iteration method
-  insertAtIndex(data: T, index: number) {
+  insertAtIndex(data: T, index: NodeIndex): ListSize {
     if (index === 0) {
       return this.insertAtHead(data)
     }
@@ -167,7 +179,7 @@ export class LinkedList<T> {
     }
   }
 
-  removeAtIndex(index: number) {
-
+  removeAtIndex(index: NodeIndex): ListSize {
+    return this.size
   }
 }

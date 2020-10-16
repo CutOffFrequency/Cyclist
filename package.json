@@ -4,14 +4,18 @@
   "description": "simple linked list library with minimal dependencies",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register test/**/*.spec.ts"
+    "test": "mocha -r ts-node/register test/**/*.spec.ts",
+    "lint": "eslint . --ext .ts"
   },
   "author": "Erik Waters",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.2.13",
     "@types/mocha": "^8.0.3",
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
+    "@typescript-eslint/parser": "^4.4.1",
     "chai": "^4.2.0",
+    "eslint": "^7.11.0",
     "mocha": "^8.1.3",
     "prettier": "^2.1.2",
     "sinon": "^9.2.0",
