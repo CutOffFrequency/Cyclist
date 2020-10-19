@@ -45,6 +45,11 @@ describe('LinkedList', () => {
         it('has a tail node that is the head node', () => {
           assert.equal(newList.head, newList.tail)
         })
+
+        it('links the head node to itself', () => {
+          assert.equal(newList.head.next(), newList.head)
+          assert.equal(newList.head.previous(), newList.head)
+        })
       })
     })
 
@@ -144,6 +149,11 @@ describe('LinkedList', () => {
 
         it('has a head node that is the tail node', () => {
           assert.equal(newList.head, newList.tail)
+        })
+
+        it('links the tail node to itself', () => {
+          assert.equal(newList.tail.previous(), newList.tail)
+          assert.equal(newList.tail.next(), newList.tail)
         })
       })
     })
@@ -319,16 +329,35 @@ describe('LinkedList', () => {
 
   describe('insertAtIndex', () => {
     describe('edge cases', () => {
+      const newList: LinkedList<number> = new LinkedList({
+        head: undefined,
+      })
+
+      const insertAtHeadSpy = spy(newList, 'insertAtHead')
+
       it('calls insertAtHead when inserting at index === 0', () => {
-        const newList: LinkedList<number> = new LinkedList({
-          head: undefined,
-        })
+        newList.insertAtIndex(0, 1)
+        assert(insertAtHeadSpy.calledWith(1))
+      })
+    })
 
-        spy(newList, 'insertAtHead')
-        spy(newList, 'insertAtTail')
+    describe('with a positive integer < this.size as the target index', () => {
+      const newList: LinkedList<number> = new LinkedList({
+        head: undefined,
+      })
 
-        newList.insertAtIndex(1, 0)
-        newList.insertAtIndex(2, 1)
+      newList.insertAtHead(1)
+      newList.insertAtTail(3)
+      newList.insertAtIndex(1, 2)
+      it('inserts a new node at the correct index', () => {
+        assert.equal(newList.size, 3)
+        assert.equal(newList.head.next().data, 2)
+      })
+
+      it('properly links the new node', () => {
+        assert.equal(newList.head.next(), newList.tail.previous())
+        assert.equal(newList.head.next().next(), newList.tail)
+        assert.equal(newList.tail.previous().previous(), newList.head)
       })
     })
   })
