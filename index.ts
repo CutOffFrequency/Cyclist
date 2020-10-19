@@ -29,7 +29,6 @@ export type NodeFunction<T> = (node: Node<T>) => Node<T>
 export type NodeIndex = number
 export type ListSize = number
 export type MaybeNode<T> = Node<T> | undefined
-export type SideEffect = () => void
 
 // Keeping track of both a head and tail for a cyclical doubly linked list may seem redundant
 // since the tail is just the current head's previous node however;
@@ -88,20 +87,21 @@ export class LinkedList<T> {
 
   // the intention behind this method is to provide baked in iteration in both directions
   // (forward and backward) with a mechanism to execute a user provided side effect
-  // (extensibility principle) in the form of a callback. When the targeted node is found
+  // (for extensibility) in the form of a callback. When the targeted node is found
   // this method will return the application of the callback to the node, if the user does
   // not supply a callback, this method will instead return the targeted node. This method is
   // unique in that if the targeted index is out of bounds, it will return undefined
   iterateThroughList(
     targetIndex: number,
-    sideEffect: NodeFunction<T>,
+    callback?: NodeFunction<T>,
     previousIndex = 0,
     previousNode: Node<T> = this.head
-  ): MaybeNode<T> | SideEffect | Error {
-    if (Math.abs(targetIndex) >= this.size) return
+  ): MaybeNode<T> {
+    // the head should be accessible via a negative index equal to the list size
+    if (targetIndex >= this.size || Math.abs(targetIndex) > this.size) return
 
     if (targetIndex === 0) {
-      return sideEffect ? sideEffect(this.head) : this.head
+      return callback ? callback(this.head) : this.head
     }
 
     let iteration, currentNode
@@ -120,21 +120,19 @@ export class LinkedList<T> {
       case 'increment':
         return this.iterateThroughList(
           targetIndex,
-          sideEffect,
+          callback,
           previousIndex + 1,
           previousNode.next()
         )
       case 'decrement':
         return this.iterateThroughList(
           targetIndex,
-          sideEffect,
+          callback,
           previousIndex - 1,
           previousNode.previous()
         )
-      case 'done':
-        return sideEffect ? sideEffect(currentNode) : currentNode
       default:
-        return new Error('invalid case for iteration')
+        return callback ? callback(currentNode) : currentNode
     }
   }
 

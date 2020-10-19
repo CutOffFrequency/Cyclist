@@ -1,6 +1,7 @@
 import {LinkedList, Node} from '../index'
 import {describe, it} from 'mocha'
 import {assert} from 'chai'
+import {spy} from 'sinon'
 
 describe('LinkedList', () => {
   describe('constructor', () => {
@@ -216,6 +217,118 @@ describe('LinkedList', () => {
           assert.equal(newList.tail.next(), newList.head)
           assert.equal(newList.head.previous(), newList.tail)
         })
+      })
+    })
+  })
+
+  describe('iterateThroughList', () => {
+    describe('with a target index that is out of bounds', () => {
+      const newList: LinkedList<number> = new LinkedList({
+        head: undefined,
+      })
+
+      newList.insertAtHead(1)
+
+      it('returns undefined', () => {
+        assert.isUndefined(newList.iterateThroughList(2))
+      })
+    })
+
+    describe('with no callback argument recieved', () => {
+      const newList: LinkedList<number> = new LinkedList({
+        head: undefined,
+      })
+
+      newList.insertAtHead(1)
+      newList.insertAtTail(2)
+      newList.insertAtTail(3)
+
+      describe('with a target node index of 0', () => {
+        it('returns the head', () => {
+          assert.equal(newList.iterateThroughList(0), newList.head)
+        })
+      })
+
+      describe('with a positive integer for the target node index', () => {
+        it('returns the correct node', () => {
+          assert.equal(newList.iterateThroughList(1), newList.head.next())
+          assert.equal(newList.iterateThroughList(2), newList.tail)
+        })
+      })
+
+      describe('with a negative integer for the target node index', () => {
+        it('returns the correct node', () => {
+          assert.equal(newList.iterateThroughList(-1), newList.tail)
+          assert.equal(newList.iterateThroughList(-2), newList.tail.previous())
+          assert.equal(newList.iterateThroughList(-3), newList.head)
+        })
+      })
+    })
+
+    describe('with a callback argument', () => {
+      const newList: LinkedList<string | number> = new LinkedList({
+        head: undefined,
+      })
+
+      newList.insertAtHead(1)
+      newList.insertAtTail(2)
+      newList.insertAtTail(3)
+
+      const nodeIdentity = (node: Node<number>) => node
+      let identitySpy
+      // each test in this block should have a fresh spy
+      beforeEach(() => {
+        identitySpy = spy(nodeIdentity)
+      })
+
+      // curry the method under test for readability
+      const identifyOfNodeAtIndex = (index: number) =>
+        newList.iterateThroughList(index, identitySpy)
+
+      describe('with a target node index of 0', () => {
+        it('calls the callback with the target node', () => {
+          identifyOfNodeAtIndex(0)
+          assert(identitySpy.calledOnceWith(newList.head))
+        })
+      })
+
+      describe('with a positive integer for the target node index', () => {
+        it('calls the callback with the correct node', () => {
+          identifyOfNodeAtIndex(1)
+          assert(identitySpy.calledWith(newList.tail.previous()))
+
+          identifyOfNodeAtIndex(2)
+          assert(identitySpy.calledWith(newList.tail))
+        })
+      })
+
+      describe('with a negative integer for the target node index', () => {
+        it('calls the callback with the correct node', () => {
+          identifyOfNodeAtIndex(-1)
+          assert(identitySpy.calledWith(newList.tail))
+
+          identifyOfNodeAtIndex(-2)
+          assert(identitySpy.calledWith(newList.tail.previous()))
+
+          identifyOfNodeAtIndex(-3)
+          assert(identitySpy.calledWith(newList.head))
+        })
+      })
+    })
+  })
+
+  describe('insertAtIndex', () => {
+    describe('edge cases', () => {
+      it('calls insertAtHead when inserting at index === 0', () => {
+        const newList: LinkedList<number> = new LinkedList({
+          head: undefined,
+        })
+
+        spy(newList, 'insertAtHead')
+        spy(newList, 'insertAtTail')
+
+        newList.insertAtIndex(1, 0)
+        newList.insertAtIndex(2, 1)
       })
     })
   })
