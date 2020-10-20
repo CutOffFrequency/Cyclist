@@ -142,14 +142,20 @@ export class LinkedList<T> {
   }
 
   insertAtIndex(index: NodeIndex, data: T): ListSize {
-    if (index === 0) this.insertAtHead(data)
+    if (index === 0 || index === this.size * -1) {
+      return this.insertAtHead(data)
+    }
 
-    const shiftRight = index > -1
-    const nextNode = shiftRight
-      ? this.iterateThroughList(index)
-      : this.iterateThroughList(index).previous()
+    if (index === this.size) {
+      return this.insertAtTail(data)
+    }
 
-    const previousNode = shiftRight ? nextNode.previous() : nextNode.next()
+    if (index > this.size || index <= (this.size + 1) * -1) {
+      return this.size
+    }
+
+    const nextNode = this.iterateThroughList(index)
+    const previousNode = nextNode.previous()
 
     const newNode = new Node({
       data,
@@ -164,6 +170,34 @@ export class LinkedList<T> {
   }
 
   removeAtIndex(index: NodeIndex): ListSize {
-    return this.size
+    if (this.size === 0 || index > this.size || index <= (this.size + 1) * -1) {
+      return this.size
+    }
+
+    if (this.size === 1) {
+      return this.emptyList()
+    }
+
+    const targetNode = this.iterateThroughList(index)
+
+    if (targetNode === this.head) {
+      this.head = this.head.next()
+    }
+
+    if (targetNode === this.tail) {
+      this.tail = this.tail.previous()
+    }
+
+    const nextNode = targetNode.next()
+    const previousNode = targetNode.previous()
+    previousNode.next = () => nextNode
+    nextNode.previous = () => previousNode
+    return (this.size -= 1)
+  }
+
+  emptyList(): ListSize {
+    this.head = null
+    this.tail = null
+    return (this.size = 0)
   }
 }
