@@ -4,12 +4,24 @@ export interface Node<T> {
   previous?: () => Node<T>
 }
 
+export interface NodeConstructorArgs<T> {
+  data: T
+  next?: () => Node<T>
+  previous?: () => Node<T>
+}
+
 export class Node<T> {
-  constructor(args: Node<T>) {
-    const {data, next, previous} = args
+  constructor({data, next, previous}: NodeConstructorArgs<T>) {
     this.data = data
-    this.next = next ? next : null
-    this.previous = previous ? previous : null
+    this.next = next
+    this.previous = previous
+  }
+
+  // this method is called on a Node when it is removed from a list in order to remove
+  // circular references so that unneeded nodes may be garbage collected
+  unlink(): void {
+    this.next = null
+    this.previous = null
   }
 }
 
@@ -34,10 +46,9 @@ export type MaybeNode<T> = Node<T> | undefined
 // since the tail is just the current head's previous node however; when adding new nodes at
 // the head we don't need to iterate through the entire list to get the new head's previous
 export class LinkedList<T> {
-  constructor(args: LinkedListConstructorArgs<T>) {
-    const {head, tail, size} = args
-    this.head = head ? head : null
-    this.tail = tail ? tail : null
+  constructor({head, tail, size}: LinkedListConstructorArgs<T>) {
+    this.head = head
+    this.tail = tail
     this.size = size ? size : 0
   }
 
@@ -192,12 +203,36 @@ export class LinkedList<T> {
     const previousNode = targetNode.previous()
     previousNode.next = () => nextNode
     nextNode.previous = () => previousNode
+    targetNode.unlink()
     return (this.size -= 1)
   }
 
+  iterateOverList(
+    callback: NodeFunction<T>,
+    currentNode: Node<T> = this.head,
+    currentIndex: NodeIndex = 0,
+    finalIndex: NodeIndex = this.size - 1
+  ): void {
+    const nextNode = currentNode.next()
+
+    if (currentIndex <= finalIndex) {
+      callback(currentNode)
+    }
+
+    if (currentIndex < finalIndex) {
+      this.iterateOverList(callback, nextNode, currentIndex + 1, finalIndex)
+    }
+  }
+
   emptyList(): ListSize {
+    const unlinkNode = node => {
+      this.size -= 1
+      node.unlink()
+    }
+
+    this.iterateOverList(unlinkNode.bind(this))
     this.head = null
     this.tail = null
-    return (this.size = 0)
+    return this.size
   }
 }
