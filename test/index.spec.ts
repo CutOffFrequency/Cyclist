@@ -213,13 +213,13 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('iterateThroughList', () => {
+  describe('findNodeAtIndex', () => {
     describe('with a target index that is out of bounds', () => {
       const newList = listFactory()
       newList.insertAtHead(1)
 
       it('returns undefined', () => {
-        assert.isUndefined(newList.iterateThroughList(2))
+        assert.isUndefined(newList.findNodeAtIndex(2))
       })
     })
 
@@ -231,22 +231,22 @@ describe('LinkedList', () => {
 
       describe('with a target node index of 0', () => {
         it('returns the head', () => {
-          assert.equal(newList.iterateThroughList(0), newList.head)
+          assert.equal(newList.findNodeAtIndex(0), newList.head)
         })
       })
 
       describe('with a positive integer for the target node index', () => {
         it('returns the correct node', () => {
-          assert.equal(newList.iterateThroughList(1), newList.head.next())
-          assert.equal(newList.iterateThroughList(2), newList.tail)
+          assert.equal(newList.findNodeAtIndex(1), newList.head.next())
+          assert.equal(newList.findNodeAtIndex(2), newList.tail)
         })
       })
 
       describe('with a negative integer for the target node index', () => {
         it('returns the correct node', () => {
-          assert.equal(newList.iterateThroughList(-1), newList.tail)
-          assert.equal(newList.iterateThroughList(-2), newList.tail.previous())
-          assert.equal(newList.iterateThroughList(-3), newList.head)
+          assert.equal(newList.findNodeAtIndex(-1), newList.tail)
+          assert.equal(newList.findNodeAtIndex(-2), newList.tail.previous())
+          assert.equal(newList.findNodeAtIndex(-3), newList.head)
         })
       })
     })
@@ -266,7 +266,7 @@ describe('LinkedList', () => {
 
       // curry the method under test for readability
       const identifyOfNodeAtIndex = (index: number) =>
-        newList.iterateThroughList(index, identitySpy)
+        newList.findNodeAtIndex(index, identitySpy)
 
       describe('with a target node index of 0', () => {
         it('calls the callback with the target node', () => {
@@ -433,7 +433,7 @@ describe('LinkedList', () => {
       newList.removeAtIndex(1)
 
       it('removes the target node', () => {
-        assert.equal(newList.iterateThroughList(1).data, 3)
+        assert.equal(newList.findNodeAtIndex(1).data, 3)
       })
 
       it('links the surrounding nodes', () => {

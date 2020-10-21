@@ -96,7 +96,7 @@ export class LinkedList<T> {
   // this method will return the application of the callback to the node, if the user does
   // not supply a callback, this method will instead return the targeted node. This method is
   // unique in that if the targeted index is out of bounds, it will return undefined
-  iterateThroughList(
+  findNodeAtIndex(
     targetIndex: number,
     callback?: NodeFunction<T>,
     previousIndex = 0,
@@ -123,14 +123,14 @@ export class LinkedList<T> {
 
     switch (iteration) {
       case 'increment':
-        return this.iterateThroughList(
+        return this.findNodeAtIndex(
           targetIndex,
           callback,
           previousIndex + 1,
           previousNode.next()
         )
       case 'decrement':
-        return this.iterateThroughList(
+        return this.findNodeAtIndex(
           targetIndex,
           callback,
           previousIndex - 1,
@@ -154,7 +154,7 @@ export class LinkedList<T> {
       return this.size
     }
 
-    const nextNode = this.iterateThroughList(index)
+    const nextNode = this.findNodeAtIndex(index)
     const previousNode = nextNode.previous()
 
     const newNode = new Node({
@@ -178,7 +178,7 @@ export class LinkedList<T> {
       return this.emptyList()
     }
 
-    const targetNode = this.iterateThroughList(index)
+    const targetNode = this.findNodeAtIndex(index)
 
     if (targetNode === this.head) {
       this.head = this.head.next()
