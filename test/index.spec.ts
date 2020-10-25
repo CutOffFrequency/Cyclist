@@ -15,8 +15,8 @@ describe('LinkedList', () => {
       })
 
       it('creates an empty list with no nodes', () => {
-        assert.isNull(newList.head, 'empty list has a head')
-        assert.isNull(newList.tail, 'empty list has a tail')
+        assert.isUndefined(newList.head, 'empty list has a head')
+        assert.isUndefined(newList.tail, 'empty list has a tail')
       })
     })
   })
@@ -388,6 +388,7 @@ describe('LinkedList', () => {
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
+      const head = newList.findNodeAtIndex(0)
       newList.removeAtIndex(0)
 
       it('correctly reassigns the head', () => {
@@ -402,6 +403,11 @@ describe('LinkedList', () => {
       it('updates the size', () => {
         assert.equal(newList.size, 2)
       })
+
+      it('dereferences the surrounding nodes from the removed node', () => {
+        assert.isNull(head.next)
+        assert.isNull(head.previous)
+      })
     })
 
     describe('targetting the tail node', () => {
@@ -409,6 +415,7 @@ describe('LinkedList', () => {
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
+      const tail = newList.findNodeAtIndex(2)
       newList.removeAtIndex(newList.size - 1)
 
       it('correctly reassigns the tail', () => {
@@ -423,6 +430,11 @@ describe('LinkedList', () => {
       it('updates the size', () => {
         assert.equal(newList.size, 2)
       })
+
+      it('dereferences the surrounding nodes from the removed node', () => {
+        assert.isNull(tail.next)
+        assert.isNull(tail.previous)
+      })
     })
 
     describe('targetting a non tail or head node', () => {
@@ -430,6 +442,7 @@ describe('LinkedList', () => {
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
+      const middle = newList.findNodeAtIndex(1)
       newList.removeAtIndex(1)
 
       it('removes the target node', () => {
@@ -444,6 +457,31 @@ describe('LinkedList', () => {
       it('updates the size', () => {
         assert.equal(newList.size, 2)
       })
+
+      it('dereferences the surrounding nodes from the removed node', () => {
+        assert.isNull(middle.next)
+        assert.isNull(middle.previous)
+      })
+    })
+  })
+
+  describe('iterateOverList', () => {
+    const newList = listFactory()
+    newList.insertAtHead(1)
+    newList.insertAtTail(2)
+    newList.insertAtTail(3)
+    const results = []
+    const pushDataFromNode = node => {
+      results.push(node.data)
+      return node
+    }
+
+    const callbackSpy = spy(pushDataFromNode)
+    newList.iterateOverList(callbackSpy)
+
+    it('applies the callback to each node in the list', () => {
+      assert(callbackSpy.calledThrice)
+      assert.deepEqual(results, [1, 2, 3])
     })
   })
 
