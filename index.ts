@@ -31,11 +31,14 @@ export interface LinkedList<T> {
   size: number
 }
 
-export interface LinkedListConstructorArgs<T> {
-  head: Node<T>
+export interface LinkedListConstructorInterface<T> {
+  head?: Node<T>
   tail?: Node<T>
-  size?: number
 }
+
+export type LinkedListConstructorArgs<T> =
+  | LinkedListConstructorInterface<T>
+  | undefined
 
 export type NodeFunction<T> = (node: Node<T>) => Node<T>
 export type NodeIndex = number
@@ -43,13 +46,29 @@ export type ListSize = number
 export type MaybeNode<T> = Node<T> | undefined
 
 // Keeping track of both a head and tail for a cyclical doubly linked list may seem redundant
-// since the tail is just the current head's previous node however; when adding new nodes at
-// the head we don't need to iterate through the entire list to get the new head's previous
+// since the tail is just the current head's previous node however it does provide some benefits
 export class LinkedList<T> {
-  constructor({head, tail, size}: LinkedListConstructorArgs<T>) {
-    this.head = head
-    this.tail = tail
-    this.size = size ? size : 0
+  constructor(
+    {head, tail}: LinkedListConstructorArgs<T> = {
+      // default argument with undefined values allows for destructuring AND instantiation without an options argument
+      head: undefined,
+      tail: undefined,
+    }
+  ) {
+    this.size = 0
+
+    // instead of initializing the lists's head and tail nodes as the arguments passed to the constructor
+    // we want to create new nodes in order to prevent mutations that may cause unwanted side effects
+    // the insert methods already handle node instantiation, linking, and increment the list size
+    if (head) {
+      this.insertAtHead(head.data)
+    }
+
+    let referenceNode = head
+    while (referenceNode !== tail) {
+      referenceNode = referenceNode.next()
+      this.insertAtTail(referenceNode.data)
+    }
   }
 
   insertAtHead(data: T): ListSize {
@@ -211,15 +230,17 @@ export class LinkedList<T> {
     callback: NodeFunction<T>,
     currentNode: Node<T> = this.head,
     currentIndex: NodeIndex = 0,
-    finalIndex: NodeIndex = this.size - 1
+    finalIndex: NodeIndex = this.size ? this.size - 1 : undefined
   ): void {
     const nextNode = currentNode.next()
+
+    if (!currentNode) return
 
     if (currentIndex <= finalIndex) {
       callback(currentNode)
     }
 
-    if (currentIndex < finalIndex) {
+    if (!!finalIndex && currentIndex < finalIndex) {
       this.iterateOverList(callback, nextNode, currentIndex + 1, finalIndex)
     }
   }

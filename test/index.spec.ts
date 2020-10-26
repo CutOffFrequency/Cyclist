@@ -3,27 +3,87 @@ import {describe, it} from 'mocha'
 import {assert} from 'chai'
 import {spy} from 'sinon'
 
-const listFactory = () => new LinkedList({head: undefined})
+const emptyListFactory = () => new LinkedList()
 
 describe('LinkedList', () => {
   describe('constructor', () => {
     describe('when not passed any nodes', () => {
-      const newList = listFactory()
+      const emptyList = emptyListFactory()
 
       it('creates an empty list with size 0', () => {
-        assert.equal(newList.size, 0, 'empty list does not have size 0')
+        assert.equal(emptyList.size, 0, 'empty list does not have size 0')
       })
 
       it('creates an empty list with no nodes', () => {
-        assert.isUndefined(newList.head, 'empty list has a head')
-        assert.isUndefined(newList.tail, 'empty list has a tail')
+        assert.isUndefined(emptyList.head, 'empty list has a head')
+        assert.isUndefined(emptyList.tail, 'empty list has a tail')
+      })
+    })
+
+    describe('when duplicating an existing list', () => {
+      const values = [1, 2, 3, 4]
+      const populatedList = emptyListFactory()
+      values.forEach(value => populatedList.insertAtTail(value))
+
+      const fullsetList = new LinkedList({
+        head: populatedList.head,
+        tail: populatedList.tail,
+      })
+
+      it('creates a new list', () => {
+        assert.equal(fullsetList === populatedList, false)
+      })
+
+      it('creates a new list with the correct size', () => {
+        assert.equal(fullsetList.size, 4)
+      })
+
+      it('creates a new list with properly linked nodes', () => {
+        assert.equal(fullsetList.tail.next(), fullsetList.head)
+        assert.equal(fullsetList.head.previous(), fullsetList.tail)
+      })
+    })
+
+    describe('when creating a subset of an existing list', () => {
+      const values = [1, 2, 3, 4]
+      const populatedList = emptyListFactory()
+      values.forEach(value => populatedList.insertAtTail(value))
+
+      // when creating a new list from an existing list, passing a non tail node to the constructor
+      // should create a list that is a sub set of the existing list
+      const subsetList = new LinkedList({
+        head: populatedList.head,
+        tail: populatedList.tail.previous(),
+      })
+
+      it('creates a new list', () => {
+        assert.equal(subsetList === populatedList, false)
+      })
+
+      it('creates a new list with the correct size', () => {
+        assert.equal(subsetList.size, 3)
+      })
+
+      it('creates a new list with properly linked nodes', () => {
+        assert.equal(subsetList.tail.next(), subsetList.head)
+        assert.equal(subsetList.head.previous(), subsetList.tail)
+      })
+
+      it('does not mutate the existing list', () => {
+        assert.equal(populatedList.tail.data, 4)
+        assert.equal(subsetList.tail.data, 3)
+      })
+
+      it('does not mutate the Nodes in the existing list', () => {
+        assert.equal(populatedList.tail.previous().data, 3)
+        assert.equal(subsetList.tail.previous().data, 2)
       })
     })
   })
 
   describe('insertAtHead', () => {
     describe('with no previous nodes', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
 
       describe('adds an initial node', () => {
@@ -51,7 +111,7 @@ describe('LinkedList', () => {
     })
 
     describe('with a previous node', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtHead(2)
 
@@ -82,7 +142,7 @@ describe('LinkedList', () => {
     })
 
     describe('with two previous nodes', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtHead(2)
       newList.insertAtHead(3)
@@ -119,7 +179,7 @@ describe('LinkedList', () => {
 
   describe('insertAtTail', () => {
     describe('with no previous nodes', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtTail(1)
 
       describe('adds an initial node', () => {
@@ -147,7 +207,7 @@ describe('LinkedList', () => {
     })
 
     describe('with a previous node', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtTail(1)
       newList.insertAtTail(2)
 
@@ -178,7 +238,7 @@ describe('LinkedList', () => {
     })
 
     describe('with two previous nodes', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtTail(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
@@ -215,7 +275,7 @@ describe('LinkedList', () => {
 
   describe('findNodeAtIndex', () => {
     describe('with a target index that is out of bounds', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
 
       it('returns undefined', () => {
@@ -224,7 +284,7 @@ describe('LinkedList', () => {
     })
 
     describe('with no callback argument recieved', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
@@ -252,7 +312,7 @@ describe('LinkedList', () => {
     })
 
     describe('with a callback argument', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
@@ -302,7 +362,7 @@ describe('LinkedList', () => {
 
   describe('insertAtIndex', () => {
     describe('handling edge cases', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       const insertAtHeadSpy = spy(newList, 'insertAtHead')
       const insertAtTailSpy = spy(newList, 'insertAtTail')
 
@@ -327,7 +387,7 @@ describe('LinkedList', () => {
     })
 
     describe('with target index of a positive integer < this.size', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(3)
       newList.insertAtIndex(1, 2)
@@ -345,7 +405,7 @@ describe('LinkedList', () => {
     })
 
     describe('with a negative integer greater than (this.size * -1)', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(3)
       newList.insertAtIndex(-1, 2)
@@ -365,7 +425,7 @@ describe('LinkedList', () => {
 
   describe('removeAtIndex', () => {
     describe('handling edge cases', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
 
       describe('with an empty list', () => {
         it('returns the list size of 0', () => {
@@ -384,7 +444,7 @@ describe('LinkedList', () => {
     })
 
     describe('targetting the head node', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
@@ -411,7 +471,7 @@ describe('LinkedList', () => {
     })
 
     describe('targetting the tail node', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
@@ -438,7 +498,7 @@ describe('LinkedList', () => {
     })
 
     describe('targetting a non tail or head node', () => {
-      const newList = listFactory()
+      const newList = emptyListFactory()
       newList.insertAtHead(1)
       newList.insertAtTail(2)
       newList.insertAtTail(3)
@@ -466,7 +526,7 @@ describe('LinkedList', () => {
   })
 
   describe('iterateOverList', () => {
-    const newList = listFactory()
+    const newList = emptyListFactory()
     newList.insertAtHead(1)
     newList.insertAtTail(2)
     newList.insertAtTail(3)
@@ -486,7 +546,7 @@ describe('LinkedList', () => {
   })
 
   describe('emptyList', () => {
-    const newList = listFactory()
+    const newList = emptyListFactory()
     newList.insertAtHead(1)
     newList.insertAtTail(2)
     newList.insertAtTail(3)
