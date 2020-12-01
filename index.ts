@@ -45,6 +45,20 @@ export type NodeIndex = number
 export type ListSize = number
 export type MaybeNode<T> = Node<T> | undefined
 
+export type IterationCallback<T> = (
+  currentNode: Node<T>,
+  currentIndex?: NodeIndex,
+  list?: LinkedList<T>
+) => void
+
+export type IterationPredicate<T> = (
+  currentNode: Node<T>,
+  currentIndex?: NodeIndex,
+  list?: LinkedList<T>
+) => boolean
+
+const nodeIdentity = node => node
+
 // Keeping track of both a head and tail for a cyclical doubly linked list may seem redundant
 // since the tail is just the current head's previous node however it does provide some benefits
 export class LinkedList<T> {
@@ -61,154 +75,136 @@ export class LinkedList<T> {
     // we want to create new nodes in order to prevent mutations that may cause unwanted side effects
     // the insert methods already handle node instantiation, linking, and increment the list size
     if (head) {
-      this.insertAtHead(head.data)
+      this.addFirst(head.data)
     }
 
     let referenceNode = head
     while (referenceNode !== tail) {
       referenceNode = referenceNode.next()
-      this.insertAtTail(referenceNode.data)
+      this.addLast(referenceNode.data)
     }
   }
 
-  insertAtHead(data: T): ListSize {
-    const previousHead = this.head
-    const newNode: Node<T> = new Node({
-      data,
-      next: previousHead ? () => previousHead : null,
-      previous: this.tail ? () => this.tail : null,
-    })
-
-    if (this.head) {
-      this.head.previous = () => newNode
-    }
-
-    this.head = newNode
-
-    if (!this.tail) {
-      this.tail = newNode
-      newNode.previous = () => newNode
-    }
-
-    this.tail.next = () => this.head
-
-    return (this.size += 1)
+  addFirst(data: T): ListSize {
+    return this.insert(0, data)
   }
 
-  insertAtTail(data: T): ListSize {
-    const previousTail = this.tail
-    const newNode: Node<T> = new Node({
-      data,
-      next: this.head ? () => this.head : null,
-      previous: previousTail ? () => previousTail : null,
-    })
-
-    if (this.tail) {
-      this.tail.next = () => newNode
-    }
-
-    this.tail = newNode
-    if (!this.head) {
-      this.head = newNode
-      newNode.next = () => this.head
-    } else {
-      this.head.previous = () => this.tail
-    }
-
-    this.head.previous = () => this.tail
-
-    return (this.size += 1)
+  addLast(data: T): ListSize {
+    return this.insert(this.size, data)
   }
 
   // the intention behind this method is to provide baked in iteration in both directions
   // (forward and backward) with a mechanism to execute a user provided side effect
   // (for extensibility) in the form of a callback. When the targeted node is found
   // this method will return the application of the callback to the node, if the user does
-  // not supply a callback, this method will instead return the targeted node. This method is
-  // unique in that if the targeted index is out of bounds, it will return undefined
-  findNodeAtIndex(
+  // not supply a callback, this method will instead return the targeted node.
+  //  if the targeted index is out of bounds, it will return undefined
+  at(
     targetIndex: number,
-    callback?: NodeFunction<T>,
-    previousIndex = 0,
-    previousNode: Node<T> = this.head
+    callback: NodeFunction<T> = nodeIdentity
   ): MaybeNode<T> {
-    if (targetIndex === 0) {
-      return callback ? callback(this.head) : this.head
+    if (targetIndex === 0 || targetIndex === this.size * -1)
+      return callback(this.head)
+
+    if (targetIndex === this.size - 1 || targetIndex === -1)
+      return callback(this.tail)
+
+    const iterate = (
+      targetIndex: number,
+      callback: NodeFunction<T>,
+      previousIndex: NodeIndex,
+      previousNode: Node<T>
+    ): MaybeNode<T> => {
+      // the head should be accessible via a negative index equal to the list size
+      if (targetIndex >= this.size || Math.abs(targetIndex) > this.size) return
+
+      let iteration, currentNode
+
+      if (targetIndex > 0 && targetIndex > previousIndex + 1) {
+        iteration = 'increment'
+      } else if (targetIndex < 0 && targetIndex < previousIndex - 1) {
+        iteration = 'decrement'
+      } else {
+        iteration = 'done'
+        currentNode =
+          targetIndex > 0 ? previousNode.next() : previousNode.previous()
+      }
+
+      switch (iteration) {
+        case 'increment':
+          return iterate(
+            targetIndex,
+            callback,
+            previousIndex + 1,
+            previousNode.next()
+          )
+        case 'decrement':
+          return iterate(
+            targetIndex,
+            callback,
+            previousIndex - 1,
+            previousNode.previous()
+          )
+        default:
+          console.log(`node data is ${currentNode.data}`)
+          return callback(currentNode)
+      }
     }
 
-    // the head should be accessible via a negative index equal to the list size
-    if (targetIndex >= this.size || Math.abs(targetIndex) > this.size) return
-
-    let iteration, currentNode
-
-    if (targetIndex > 0 && targetIndex > previousIndex + 1) {
-      iteration = 'increment'
-    } else if (targetIndex < 0 && targetIndex < previousIndex - 1) {
-      iteration = 'decrement'
-    } else {
-      iteration = 'done'
-      currentNode =
-        targetIndex > 0 ? previousNode.next() : previousNode.previous()
-    }
-
-    switch (iteration) {
-      case 'increment':
-        return this.findNodeAtIndex(
-          targetIndex,
-          callback,
-          previousIndex + 1,
-          previousNode.next()
-        )
-      case 'decrement':
-        return this.findNodeAtIndex(
-          targetIndex,
-          callback,
-          previousIndex - 1,
-          previousNode.previous()
-        )
-      default:
-        return callback ? callback(currentNode) : currentNode
-    }
+    return iterate(targetIndex, (callback = node => node), 0, this.head)
   }
 
-  insertAtIndex(index: NodeIndex, data: T): ListSize {
-    if (index === 0 || index === this.size * -1) {
-      return this.insertAtHead(data)
-    }
-
-    if (index === this.size) {
-      return this.insertAtTail(data)
-    }
-
+  insert(index: NodeIndex, data: T): ListSize {
     if (index > this.size || index <= (this.size + 1) * -1) {
       return this.size
     }
 
-    const nextNode = this.findNodeAtIndex(index)
-    const previousNode = nextNode.previous()
+    let newNode, nextNode, previousNode
 
-    const newNode = new Node({
-      data,
-      next: () => nextNode,
-      previous: () => previousNode,
-    })
+    if (this.size !== 0) {
+      newNode = new Node({
+        data,
+        next: () => nextNode,
+        previous: () => previousNode,
+      })
+
+      nextNode = index === this.size ? this.head : this.at(index)
+      previousNode = nextNode.previous()
+    } else {
+      newNode = new Node({
+        data,
+        next: newNode,
+        previous: newNode,
+      })
+
+      nextNode = newNode
+      previousNode = newNode
+    }
 
     nextNode.previous = () => newNode
     previousNode.next = () => newNode
 
+    if (index === 0 || index === this.size * -1) {
+      this.head = newNode
+    }
+
+    if (index === this.size) {
+      this.tail = newNode
+    }
+
     return (this.size += 1)
   }
 
-  removeAtIndex(index: NodeIndex): ListSize {
+  remove(index: NodeIndex): ListSize {
     if (this.size === 0 || index > this.size || index <= (this.size + 1) * -1) {
       return this.size
     }
 
     if (this.size === 1) {
-      return this.emptyList()
+      return this.clear()
     }
 
-    const targetNode = this.findNodeAtIndex(index)
+    const targetNode = this.at(index)
 
     if (targetNode === this.head) {
       this.head = this.head.next()
@@ -226,34 +222,95 @@ export class LinkedList<T> {
     return (this.size -= 1)
   }
 
-  iterateOverList(
-    callback: NodeFunction<T>,
-    currentNode: Node<T> = this.head,
-    currentIndex: NodeIndex = 0,
-    finalIndex: NodeIndex = this.size ? this.size - 1 : undefined
-  ): void {
-    const nextNode = currentNode.next()
+  clear(): ListSize {
+    const unlinkNode = node => node.unlink()
 
-    if (!currentNode) return
-
-    if (currentIndex <= finalIndex) {
-      callback(currentNode)
-    }
-
-    if (!!finalIndex && currentIndex < finalIndex) {
-      this.iterateOverList(callback, nextNode, currentIndex + 1, finalIndex)
-    }
-  }
-
-  emptyList(): ListSize {
-    const unlinkNode = node => {
-      this.size -= 1
-      node.unlink()
-    }
-
-    this.iterateOverList(unlinkNode.bind(this))
+    this.forEach(unlinkNode)
     this.head = null
     this.tail = null
-    return this.size
+    return (this.size = 0)
+  }
+
+  forEach(callback: IterationCallback<T>): void {
+    const iterate = (
+      callback: IterationCallback<T>,
+      currentNode: Node<T>,
+      currentIndex: NodeIndex,
+      list: this = this
+    ): void => {
+      const nextNode = currentNode?.next()
+
+      if (!currentNode) return
+
+      if (currentIndex <= this.size - 1) {
+        callback(currentNode, currentIndex, list)
+      }
+
+      if (currentIndex < this.size - 1) {
+        iterate(callback, nextNode, currentIndex + 1, list)
+      }
+    }
+
+    iterate(callback, this.head, 0, this)
+  }
+
+  filter(callback: IterationPredicate<T>): LinkedList<T | unknown> {
+    const filteredList = new LinkedList()
+
+    const iterate = (
+      callback: IterationPredicate<T>,
+      currentNode: Node<T>,
+      currentIndex: NodeIndex,
+      list: this = this
+    ): void => {
+      const nextNode = currentNode?.next()
+
+      if (!currentNode) return
+
+      if (currentIndex <= this.size - 1) {
+        if (callback(currentNode, currentIndex, list)) {
+          filteredList.addLast(currentNode.data)
+        }
+      }
+
+      if (currentIndex < this.size - 1) {
+        iterate(callback, nextNode, currentIndex + 1, list)
+      }
+    }
+
+    iterate(callback, this.head, 0, this)
+
+    return filteredList
+  }
+
+  toArray(): Array<T> {
+    const arr = []
+
+    this.forEach(node => arr.push(node.data))
+
+    return arr
+  }
+
+  includes(datum: T): boolean {
+    let includesDatum = false
+
+    this.forEach(node => {
+      if (node.data === datum) includesDatum = true
+    })
+
+    return includesDatum
+  }
+
+  slice(
+    startIndex: NodeIndex,
+    endIndex: NodeIndex = this.size - 1
+  ): LinkedList<T | unknown> {
+    // normalize in case of negative values
+    if (startIndex < 0) startIndex = this.size - 1 + startIndex
+    if (endIndex < 0) startIndex = this.size - 1 + endIndex
+
+    return this.filter((cur, i) => {
+      return i >= startIndex && i <= endIndex
+    })
   }
 }

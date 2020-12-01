@@ -8,22 +8,22 @@ const emptyListFactory = () => new LinkedList()
 describe('LinkedList', () => {
   describe('constructor', () => {
     describe('when not passed any nodes', () => {
-      const emptyList = emptyListFactory()
+      const clear = emptyListFactory()
 
       it('creates an empty list with size 0', () => {
-        assert.equal(emptyList.size, 0, 'empty list does not have size 0')
+        assert.equal(clear.size, 0, 'empty list does not have size 0')
       })
 
       it('creates an empty list with no nodes', () => {
-        assert.isUndefined(emptyList.head, 'empty list has a head')
-        assert.isUndefined(emptyList.tail, 'empty list has a tail')
+        assert.isUndefined(clear.head, 'empty list has a head')
+        assert.isUndefined(clear.tail, 'empty list has a tail')
       })
     })
 
     describe('when duplicating an existing list', () => {
       const values = [1, 2, 3, 4]
       const populatedList = emptyListFactory()
-      values.forEach(value => populatedList.insertAtTail(value))
+      values.forEach(value => populatedList.addLast(value))
 
       const fullsetList = new LinkedList({
         head: populatedList.head,
@@ -47,7 +47,7 @@ describe('LinkedList', () => {
     describe('when creating a subset of an existing list', () => {
       const values = [1, 2, 3, 4]
       const populatedList = emptyListFactory()
-      values.forEach(value => populatedList.insertAtTail(value))
+      values.forEach(value => populatedList.addLast(value))
 
       // when creating a new list from an existing list, passing a non tail node to the constructor
       // should create a list that is a sub set of the existing list
@@ -81,10 +81,10 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('insertAtHead', () => {
+  describe('addFirst', () => {
     describe('with no previous nodes', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
+      newList.addFirst(1)
 
       describe('adds an initial node', () => {
         it('increments the size to 1', () => {
@@ -112,8 +112,8 @@ describe('LinkedList', () => {
 
     describe('with a previous node', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtHead(2)
+      newList.addFirst(1)
+      newList.addFirst(2)
 
       describe('adds a new node at the head of the list', () => {
         it('increments the size to 2', () => {
@@ -143,9 +143,9 @@ describe('LinkedList', () => {
 
     describe('with two previous nodes', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtHead(2)
-      newList.insertAtHead(3)
+      newList.addFirst(1)
+      newList.addFirst(2)
+      newList.addFirst(3)
 
       describe('adds a new node at the head of the list', () => {
         it('increments the size to 3', () => {
@@ -177,10 +177,10 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('insertAtTail', () => {
+  describe('addLast', () => {
     describe('with no previous nodes', () => {
       const newList = emptyListFactory()
-      newList.insertAtTail(1)
+      newList.addLast(1)
 
       describe('adds an initial node', () => {
         it('increments the size to 1', () => {
@@ -208,8 +208,8 @@ describe('LinkedList', () => {
 
     describe('with a previous node', () => {
       const newList = emptyListFactory()
-      newList.insertAtTail(1)
-      newList.insertAtTail(2)
+      newList.addLast(1)
+      newList.addLast(2)
 
       describe('adds a new node at the tail of the list', () => {
         it('increments the size to 2', () => {
@@ -239,9 +239,9 @@ describe('LinkedList', () => {
 
     describe('with two previous nodes', () => {
       const newList = emptyListFactory()
-      newList.insertAtTail(1)
-      newList.insertAtTail(2)
-      newList.insertAtTail(3)
+      newList.addLast(1)
+      newList.addLast(2)
+      newList.addLast(3)
 
       describe('adds a new node at the tail end of the list', () => {
         it('increments the size to 3', () => {
@@ -273,124 +273,93 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('findNodeAtIndex', () => {
+  describe('at', () => {
     describe('with a target index that is out of bounds', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
+      newList.addFirst(1)
 
       it('returns undefined', () => {
-        assert.isUndefined(newList.findNodeAtIndex(2))
+        assert.isUndefined(newList.at(2))
       })
     })
 
     describe('with no callback argument recieved', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(2)
-      newList.insertAtTail(3)
+      newList.addFirst(1)
+      newList.addLast(2)
+      newList.addLast(3)
 
       describe('with a target node index of 0', () => {
         it('returns the head', () => {
-          assert.equal(newList.findNodeAtIndex(0), newList.head)
+          assert.equal(newList.at(0), newList.head)
         })
       })
 
       describe('with a positive integer for the target node index', () => {
         it('returns the correct node', () => {
-          assert.equal(newList.findNodeAtIndex(1), newList.head.next())
-          assert.equal(newList.findNodeAtIndex(2), newList.tail)
+          assert.equal(newList.at(1), newList.head.next())
+          assert.equal(newList.at(2), newList.tail)
         })
       })
 
       describe('with a negative integer for the target node index', () => {
         it('returns the correct node', () => {
-          assert.equal(newList.findNodeAtIndex(-1), newList.tail)
-          assert.equal(newList.findNodeAtIndex(-2), newList.tail.previous())
-          assert.equal(newList.findNodeAtIndex(-3), newList.head)
+          assert.equal(newList.at(-1), newList.tail)
+          assert.equal(newList.at(-2), newList.tail.previous())
+          assert.equal(newList.at(-3), newList.head)
         })
       })
     })
 
     describe('with a callback argument', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(2)
-      newList.insertAtTail(3)
+      newList.addFirst(1)
+      newList.addLast(2)
+      newList.addLast(3)
 
       const nodeIdentity = (node: Node<number>) => node
-      let identitySpy
-      // each test in this block should have a fresh spy
-      beforeEach(() => {
-        identitySpy = spy(nodeIdentity)
-      })
 
       // curry the method under test for readability
       const identifyOfNodeAtIndex = (index: number) =>
-        newList.findNodeAtIndex(index, identitySpy)
+        newList.at(index, nodeIdentity)
 
       describe('with a target node index of 0', () => {
         it('calls the callback with the target node', () => {
-          identifyOfNodeAtIndex(0)
-          assert(identitySpy.calledOnceWith(newList.head))
+          assert.equal(identifyOfNodeAtIndex(0).data, 1)
         })
       })
 
       describe('with a positive integer for the target node index', () => {
         it('calls the callback with the correct node', () => {
-          identifyOfNodeAtIndex(1)
-          assert(identitySpy.calledWith(newList.tail.previous()))
-
-          identifyOfNodeAtIndex(2)
-          assert(identitySpy.calledWith(newList.tail))
+          assert.equal(identifyOfNodeAtIndex(1).data, 2)
+          assert.equal(identifyOfNodeAtIndex(2).data, 3)
         })
       })
 
       describe('with a negative integer for the target node index', () => {
         it('calls the callback with the correct node', () => {
-          identifyOfNodeAtIndex(-1)
-          assert(identitySpy.calledWith(newList.tail))
-
-          identifyOfNodeAtIndex(-2)
-          assert(identitySpy.calledWith(newList.tail.previous()))
-
-          identifyOfNodeAtIndex(-3)
-          assert(identitySpy.calledWith(newList.head))
+          assert.equal(identifyOfNodeAtIndex(-1).data, 3)
+          assert.equal(identifyOfNodeAtIndex(-2).data, 2)
+          assert.equal(identifyOfNodeAtIndex(-3).data, 1)
         })
       })
     })
   })
 
-  describe('insertAtIndex', () => {
+  describe('insert', () => {
     describe('handling edge cases', () => {
       const newList = emptyListFactory()
-      const insertAtHeadSpy = spy(newList, 'insertAtHead')
-      const insertAtTailSpy = spy(newList, 'insertAtTail')
-
-      it('calls insertAtHead with target index === 0', () => {
-        newList.insertAtIndex(0, 1)
-        assert(insertAtHeadSpy.calledWith(1))
-      })
-
-      it('calls insertAtTail with target index === this.size', () => {
-        newList.insertAtIndex(newList.size, 2)
-        assert(insertAtTailSpy.calledWith(2))
-      })
-
-      it('calls insertAtHead with target index === (this.size * -1)', () => {
-        newList.insertAtIndex(newList.size * -1, 3)
-        assert(insertAtHeadSpy.calledWith(3))
-      })
 
       it('returns the current size with target index out of bounds', () => {
-        assert.equal(newList.size, 3)
+        assert.equal(newList.insert(1, 1), 0)
       })
     })
 
     describe('with target index of a positive integer < this.size', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(3)
-      newList.insertAtIndex(1, 2)
+      newList.addFirst(1)
+      newList.addLast(3)
+      newList.insert(1, 2)
 
       it('inserts a new node at the correct index', () => {
         assert.equal(newList.size, 3)
@@ -406,9 +375,9 @@ describe('LinkedList', () => {
 
     describe('with a negative integer greater than (this.size * -1)', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(3)
-      newList.insertAtIndex(-1, 2)
+      newList.addFirst(1)
+      newList.addLast(3)
+      newList.insert(-1, 2)
 
       it('inserts a new node at the correct index', () => {
         assert.equal(newList.size, 3)
@@ -423,33 +392,33 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('removeAtIndex', () => {
+  describe('remove', () => {
     describe('handling edge cases', () => {
       const newList = emptyListFactory()
 
       describe('with an empty list', () => {
         it('returns the list size of 0', () => {
-          assert.equal(newList.removeAtIndex(0), 0)
+          assert.equal(newList.remove(0), 0)
         })
       })
 
       describe('with a single node', () => {
-        newList.insertAtHead(1)
-        const emptyListSpy = spy(newList, 'emptyList')
+        newList.addFirst(1)
+        const clearSpy = spy(newList, 'clear')
 
-        it('calls emptyList', () => {
-          assert(emptyListSpy.called)
+        it('calls clear', () => {
+          assert(clearSpy.called)
         })
       })
     })
 
     describe('targetting the head node', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(2)
-      newList.insertAtTail(3)
-      const head = newList.findNodeAtIndex(0)
-      newList.removeAtIndex(0)
+      newList.addFirst(1)
+      newList.addLast(2)
+      newList.addLast(3)
+      const head = newList.at(0)
+      newList.remove(0)
 
       it('correctly reassigns the head', () => {
         assert.equal(newList.head.data, 2)
@@ -472,11 +441,11 @@ describe('LinkedList', () => {
 
     describe('targetting the tail node', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(2)
-      newList.insertAtTail(3)
-      const tail = newList.findNodeAtIndex(2)
-      newList.removeAtIndex(newList.size - 1)
+      newList.addFirst(1)
+      newList.addLast(2)
+      newList.addLast(3)
+      const tail = newList.at(2)
+      newList.remove(newList.size - 1)
 
       it('correctly reassigns the tail', () => {
         assert.equal(newList.tail.data, 2)
@@ -499,14 +468,14 @@ describe('LinkedList', () => {
 
     describe('targetting a non tail or head node', () => {
       const newList = emptyListFactory()
-      newList.insertAtHead(1)
-      newList.insertAtTail(2)
-      newList.insertAtTail(3)
-      const middle = newList.findNodeAtIndex(1)
-      newList.removeAtIndex(1)
+      newList.addFirst(1)
+      newList.addLast(2)
+      newList.addLast(3)
+      const middle = newList.at(1)
+      newList.remove(1)
 
       it('removes the target node', () => {
-        assert.equal(newList.findNodeAtIndex(1).data, 3)
+        assert.equal(newList.at(1).data, 3)
       })
 
       it('links the surrounding nodes', () => {
@@ -525,11 +494,11 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('iterateOverList', () => {
+  describe('forEach', () => {
     const newList = emptyListFactory()
-    newList.insertAtHead(1)
-    newList.insertAtTail(2)
-    newList.insertAtTail(3)
+    newList.addFirst(1)
+    newList.addLast(2)
+    newList.addLast(3)
     const results = []
     const pushDataFromNode = node => {
       results.push(node.data)
@@ -537,7 +506,7 @@ describe('LinkedList', () => {
     }
 
     const callbackSpy = spy(pushDataFromNode)
-    newList.iterateOverList(callbackSpy)
+    newList.forEach(callbackSpy)
 
     it('applies the callback to each node in the list', () => {
       assert(callbackSpy.calledThrice)
@@ -545,13 +514,13 @@ describe('LinkedList', () => {
     })
   })
 
-  describe('emptyList', () => {
+  describe('clear', () => {
     const newList = emptyListFactory()
-    newList.insertAtHead(1)
-    newList.insertAtTail(2)
-    newList.insertAtTail(3)
+    newList.addFirst(1)
+    newList.addLast(2)
+    newList.addLast(3)
     assert.equal(newList.size, 3)
-    newList.emptyList()
+    newList.clear()
 
     it('removes all nodes', () => {
       assert.isNull(newList.head)
@@ -560,6 +529,100 @@ describe('LinkedList', () => {
 
     it('updates the list size', () => {
       assert.equal(newList.size, 0)
+    })
+  })
+
+  describe('toArray', () => {
+    const newList = emptyListFactory()
+    newList.addFirst(1)
+    newList.addLast(2)
+    const arrFromList = newList.toArray()
+
+    it('returns an array', () => {
+      assert.isArray(arrFromList)
+    })
+
+    it('returns an array with the correct properties', () => {
+      assert.equal(arrFromList.length, 2)
+      assert.equal(arrFromList[0], 1)
+      assert.equal(arrFromList[1], 2)
+    })
+  })
+
+  describe('filter', () => {
+    const newList = emptyListFactory()
+    newList.addFirst(1)
+    newList.addLast(2)
+    const filteredList = newList.filter(node => node.data < 2)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const unfilteredList = newList.filter(node => true)
+
+    it('returns a new LinkedList', () => {
+      assert.isTrue(filteredList instanceof LinkedList)
+      assert.notDeepEqual(newList, unfilteredList)
+    })
+
+    it('returns a LinkedList with the correct properties', () => {
+      assert.equal(filteredList.size, 1)
+      assert.equal(filteredList.at(0).data, 1)
+    })
+  })
+
+  describe('includes', () => {
+    const integersList = emptyListFactory()
+    integersList.addFirst(1)
+    integersList.addLast(2)
+
+    const objectsList = emptyListFactory()
+    const refObject = {prop: true}
+    objectsList.addFirst(refObject)
+
+    it('identifies if a list includes data that is strictly equal', () => {
+      assert.isTrue(integersList.includes(1))
+      assert.isTrue(integersList.includes(2))
+      assert.isFalse(integersList.includes(3))
+
+      assert.isTrue(objectsList.includes(refObject))
+    })
+
+    it('does not identify if a list includes an object that is only loosely equal', () => {
+      assert.isFalse(objectsList.includes({prop: true}))
+    })
+  })
+
+  describe('slice', () => {
+    const newList = emptyListFactory()
+    newList.addFirst(1)
+    newList.addLast(2)
+    newList.addLast(3)
+    newList.addLast(4)
+
+    const subset1 = newList.slice(0)
+    const subset2 = newList.slice(1)
+    const subset3 = newList.slice(1, 2)
+    const subset4 = newList.slice(-1)
+
+    const emptyList1 = newList.slice(4)
+    const emptyList2 = newList.slice(-1, -2)
+    const emptyList3 = newList.slice(2, 1)
+
+    it('returns a subset list with the expected properties', () => {
+      assert.isTrue(subset1 instanceof LinkedList)
+      assert.equal(subset1.size, 4)
+
+      assert.equal(subset2.size, 3)
+
+      assert.equal(subset3.size, 2)
+      assert.equal(subset3.tail.data, 3)
+
+      assert.equal(subset4.size, 2)
+      assert.equal(subset4.tail.data, 4)
+    })
+
+    it('returns an empty list with invalid params', () => {
+      assert.equal(emptyList1.size, 0)
+      assert.equal(emptyList2.size, 0)
+      assert.equal(emptyList3.size, 0)
     })
   })
 })
