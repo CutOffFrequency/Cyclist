@@ -146,7 +146,6 @@ export class LinkedList<T> {
             previousNode.previous()
           )
         default:
-          console.log(`node data is ${currentNode.data}`)
           return callback(currentNode)
       }
     }
