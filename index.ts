@@ -93,12 +93,16 @@ export class LinkedList<T> {
     return this.insert(this.size, data)
   }
 
-  // the intention behind this method is to provide baked in iteration in both directions
-  // (forward and backward) with a mechanism to execute a user provided side effect
-  // (for extensibility) in the form of a callback. When the targeted node is found
-  // this method will return the application of the callback to the node, if the user does
-  // not supply a callback, this method will instead return the targeted node.
-  //  if the targeted index is out of bounds, it will return undefined
+  // LinkedList.at iterates through the list to find a node specified by index:
+  // with a positive targeIndex - at iterates through the nodes "from left to right"
+  // as a zero based index: an index of 0 references the head, an index of this.size - 1
+  // references the tail
+  // with a negative targetIndex - at iterates through the list "from right to left"
+  // as a one based index: an index of -1 references the tail, an index of this.size * -1
+  // references the head
+  // if a function is provided as an argument t0 the second parameter: callback, at returns
+  // the application of that function to the target node, otherwise at returns the node itself
+  // if the targeted index is out of bounds, at returns undefined
   at(
     targetIndex: number,
     callback: NodeFunction<T> = nodeIdentity
@@ -115,7 +119,7 @@ export class LinkedList<T> {
       previousIndex: NodeIndex,
       previousNode: Node<T>
     ): MaybeNode<T> => {
-      // the head should be accessible via a negative index equal to the list size
+      // the head should be accessible via a negative index with magnitude equal to the list size: this.size * -1
       if (targetIndex >= this.size || Math.abs(targetIndex) > this.size) return
 
       let iteration, currentNode
@@ -308,8 +312,6 @@ export class LinkedList<T> {
     if (startIndex < 0) startIndex = this.size - 1 + startIndex
     if (endIndex < 0) startIndex = this.size - 1 + endIndex
 
-    return this.filter((cur, i) => {
-      return i >= startIndex && i <= endIndex
-    })
+    return this.filter((cur, i) => i >= startIndex && i <= endIndex)
   }
 }
