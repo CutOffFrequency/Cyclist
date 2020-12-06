@@ -240,56 +240,57 @@ export class LinkedList<T> implements Iterable<T> {
   }
 
   forEach(callback: IterationCallback<T>): void {
-    if (this.size === 0 || this.head === undefined) return
+    if (isListWithData(this) && this.head) {
+      const iterate = (
+        callback: IterationCallback<T>,
+        currentNode: Node<T>,
+        currentIndex: NodeIndex,
+        list: this = this
+      ): void => {
+        const nextNode = currentNode?.next()
 
-    const iterate = (
-      callback: IterationCallback<T>,
-      currentNode: Node<T>,
-      currentIndex: NodeIndex,
-      list: this = this
-    ): void => {
-      const nextNode = currentNode?.next()
+        if (!currentNode) return
 
-      if (!currentNode) return
+        if (currentIndex <= this.size - 1) {
+          callback(currentNode, currentIndex, list)
+        }
 
-      if (currentIndex <= this.size - 1) {
-        callback(currentNode, currentIndex, list)
+        if (currentIndex < this.size - 1) {
+          iterate(callback, nextNode, currentIndex + 1, list)
+        }
       }
 
-      if (currentIndex < this.size - 1) {
-        iterate(callback, nextNode, currentIndex + 1, list)
-      }
+      iterate(callback, this.head, 0, this)
     }
-
-    iterate(callback, this.head, 0, this)
   }
 
   filter(callback: IterationPredicate<T>): LinkedList<T | unknown> {
     const filteredList = new LinkedList()
 
-    const iterate = (
-      callback: IterationPredicate<T>,
-      currentNode: Node<T>,
-      currentIndex: NodeIndex,
-      list: this = this
-    ): void => {
-      const nextNode = currentNode?.next()
+    if (isListWithData(this) && this.head) {
+      const iterate = (
+        callback: IterationPredicate<T>,
+        currentNode: Node<T>,
+        currentIndex: NodeIndex,
+        list: this = this
+      ): void => {
+        const nextNode = currentNode?.next()
 
-      if (!currentNode) return
+        if (!currentNode) return
 
-      if (currentIndex <= this.size - 1) {
-        if (callback(currentNode, currentIndex, list)) {
-          filteredList.addLast(currentNode.data)
+        if (currentIndex <= this.size - 1) {
+          if (callback(currentNode, currentIndex, list)) {
+            filteredList.addLast(currentNode.data)
+          }
+        }
+
+        if (currentIndex < this.size - 1) {
+          iterate(callback, nextNode, currentIndex + 1, list)
         }
       }
 
-      if (currentIndex < this.size - 1) {
-        iterate(callback, nextNode, currentIndex + 1, list)
-      }
+      iterate(callback, this.head, 0, this)
     }
-
-    if (isListWithData(this) && this.head) iterate(callback, this.head, 0, this)
-
     return filteredList
   }
 
