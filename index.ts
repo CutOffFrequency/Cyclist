@@ -1,7 +1,7 @@
 export interface Node<T> {
   data: T
-  next?: () => Node<T>
-  previous?: () => Node<T>
+  next: ReturnsNode<T>
+  previous: ReturnsNode<T>
 }
 
 export interface NodeConstructorArgs<T> {
@@ -10,35 +10,22 @@ export interface NodeConstructorArgs<T> {
   previous?: () => Node<T>
 }
 
+export type ReturnsNode<T> = () => Node<T>
+
 export class Node<T> {
   constructor({data, next, previous}: NodeConstructorArgs<T>) {
     this.data = data
-    this.next = next
-    this.previous = previous
+    this.next = next ? next : () => this
+    this.previous = previous ? previous : () => this
   }
 
   // this method is called on a Node when it is removed from a list in order to remove
   // circular references so that unneeded nodes may be garbage collected
   unlink(): void {
-    this.next = null
-    this.previous = null
+    this.next = () => this
+    this.previous = () => this
   }
 }
-
-export interface LinkedList<T> {
-  head: Node<T>
-  tail: Node<T>
-  size: number
-}
-
-export interface LinkedListConstructorInterface<T> {
-  head?: Node<T>
-  tail?: Node<T>
-}
-
-export type LinkedListConstructorArgs<T> =
-  | LinkedListConstructorInterface<T>
-  | undefined
 
 export type NodeFunction<T> = (node: Node<T>) => Node<T>
 export type NodeIndex = number
@@ -47,42 +34,62 @@ export type MaybeNode<T> = Node<T> | undefined
 
 export type IterationCallback<T> = (
   currentNode: Node<T>,
-  currentIndex?: NodeIndex,
-  list?: LinkedList<T>
+  currentIndex: NodeIndex,
+  list: LinkedList<T>
 ) => void
 
 export type IterationPredicate<T> = (
   currentNode: Node<T>,
-  currentIndex?: NodeIndex,
-  list?: LinkedList<T>
+  currentIndex: NodeIndex,
+  list: LinkedList<T>
 ) => boolean
 
-const nodeIdentity = node => node
+export interface EmptyList {
+  size: 0
+  head: undefined
+  tail: undefined
+}
 
-// Keeping track of both a head and tail for a cyclical doubly linked list may seem redundant
-// since the tail is just the current head's previous node however it does provide some benefits
-export class LinkedList<T> {
-  constructor(
-    {head, tail}: LinkedListConstructorArgs<T> = {
-      // default argument with undefined values allows for destructuring AND instantiation without an options argument
-      head: undefined,
-      tail: undefined,
-    }
-  ) {
+export interface LinkedList<T> {
+  size: number
+  head?: Node<T>
+  tail?: Node<T>
+}
+
+const isListWithData = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  list: LinkedList<any> | EmptyList
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): list is LinkedList<any> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (list as LinkedList<any>).size >= 1 && !!list.tail && !!list.head
+}
+
+export class LinkedList<T> implements Iterable<T> {
+  constructor(iterable?: Iterable<T>) {
     this.size = 0
 
-    // instead of initializing the lists's head and tail nodes as the arguments passed to the constructor
-    // we want to create new nodes in order to prevent mutations that may cause unwanted side effects
-    // the insert methods already handle node instantiation, linking, and increment the list size
-    if (head) {
-      this.addFirst(head.data)
+    if (iterable) {
+      for (const item of iterable) {
+        this.addLast(item)
+      }
+    }
+  }
+
+  [Symbol.iterator](): IterableIterator<T> {
+    const iterableIterator = {
+      values: this.toArray(),
+      current: 0,
+      [Symbol.iterator]: this[Symbol.iterator],
+      next: function (): IteratorResult<T> {
+        if (this.current < this.values.length) {
+          return {value: this.values[this.current++], done: false}
+        }
+        return {value: undefined, done: true}
+      },
     }
 
-    let referenceNode = head
-    while (referenceNode !== tail) {
-      referenceNode = referenceNode.next()
-      this.addLast(referenceNode.data)
-    }
+    return iterableIterator
   }
 
   addFirst(data: T): ListSize {
@@ -105,24 +112,30 @@ export class LinkedList<T> {
   // if the targeted index is out of bounds, at returns undefined
   at(
     targetIndex: number,
-    callback: NodeFunction<T> = nodeIdentity
+    callback: NodeFunction<T> = node => node
   ): MaybeNode<T> {
-    if (targetIndex === 0 || targetIndex === this.size * -1)
+    // the head should be accessible via a negative index with magnitude equal to the list size: this.size * -1
+    if (
+      !isListWithData(this) ||
+      targetIndex >= this.size ||
+      Math.abs(targetIndex) > this.size
+    )
+      return
+
+    if (this.head && (targetIndex === 0 || targetIndex === this.size * -1))
       return callback(this.head)
 
-    if (targetIndex === this.size - 1 || targetIndex === -1)
+    if (this.tail && (targetIndex === this.size - 1 || targetIndex === -1))
       return callback(this.tail)
 
     const iterate = (
       targetIndex: number,
       callback: NodeFunction<T>,
       previousIndex: NodeIndex,
-      previousNode: Node<T>
+      previousNode: Node<T> | undefined
     ): MaybeNode<T> => {
-      // the head should be accessible via a negative index with magnitude equal to the list size: this.size * -1
-      if (targetIndex >= this.size || Math.abs(targetIndex) > this.size) return
-
-      let iteration, currentNode
+      let iteration,
+        currentNode = previousNode
 
       if (targetIndex > 0 && targetIndex > previousIndex + 1) {
         iteration = 'increment'
@@ -131,7 +144,7 @@ export class LinkedList<T> {
       } else {
         iteration = 'done'
         currentNode =
-          targetIndex > 0 ? previousNode.next() : previousNode.previous()
+          targetIndex > 0 ? previousNode?.next() : previousNode?.previous()
       }
 
       switch (iteration) {
@@ -140,17 +153,17 @@ export class LinkedList<T> {
             targetIndex,
             callback,
             previousIndex + 1,
-            previousNode.next()
+            previousNode?.next()
           )
         case 'decrement':
           return iterate(
             targetIndex,
             callback,
             previousIndex - 1,
-            previousNode.previous()
+            previousNode?.previous()
           )
         default:
-          return callback(currentNode)
+          return currentNode ? callback(currentNode) : undefined
       }
     }
 
@@ -162,26 +175,21 @@ export class LinkedList<T> {
       return this.size
     }
 
-    let newNode, nextNode, previousNode
+    const newNode: Node<T> = new Node({data})
 
-    if (this.size !== 0) {
-      newNode = new Node({
-        data,
-        next: () => nextNode,
-        previous: () => previousNode,
-      })
-
-      nextNode = index === this.size ? this.head : this.at(index)
-      previousNode = nextNode.previous()
+    let nextNode = newNode.next()
+    if (index === this.size && !!this.head) {
+      nextNode = this.head
     } else {
-      newNode = new Node({
-        data,
-        next: newNode,
-        previous: newNode,
-      })
+      const nodeAtIndex = this.at(index)
+      if (nodeAtIndex) nextNode = nodeAtIndex
+    }
 
-      nextNode = newNode
-      previousNode = newNode
+    const previousNode = nextNode.previous()
+
+    if (isListWithData(this)) {
+      newNode.next = () => nextNode
+      newNode.previous = () => previousNode
     }
 
     nextNode.previous = () => newNode
@@ -199,42 +207,41 @@ export class LinkedList<T> {
   }
 
   remove(index: NodeIndex): ListSize {
-    if (this.size === 0 || index > this.size || index <= (this.size + 1) * -1) {
-      return this.size
-    }
-
     if (this.size === 1) {
       return this.clear()
     }
 
-    const targetNode = this.at(index)
+    const nodeAtIndex: MaybeNode<T> = this.at(index)
 
-    if (targetNode === this.head) {
+    if (!nodeAtIndex) return this.size
+
+    if (nodeAtIndex === this.head) {
       this.head = this.head.next()
     }
 
-    if (targetNode === this.tail) {
+    if (nodeAtIndex === this.tail) {
       this.tail = this.tail.previous()
     }
 
-    const nextNode = targetNode.next()
-    const previousNode = targetNode.previous()
+    const nextNode = nodeAtIndex.next()
+    const previousNode = nodeAtIndex.previous()
     previousNode.next = () => nextNode
     nextNode.previous = () => previousNode
-    targetNode.unlink()
+    nodeAtIndex.unlink()
     return (this.size -= 1)
   }
 
   clear(): ListSize {
-    const unlinkNode = node => node.unlink()
-
+    const unlinkNode = (node: Node<T>) => node.unlink()
     this.forEach(unlinkNode)
-    this.head = null
-    this.tail = null
+    this.head = undefined
+    this.tail = undefined
     return (this.size = 0)
   }
 
   forEach(callback: IterationCallback<T>): void {
+    if (this.size === 0 || this.head === undefined) return
+
     const iterate = (
       callback: IterationCallback<T>,
       currentNode: Node<T>,
@@ -281,13 +288,13 @@ export class LinkedList<T> {
       }
     }
 
-    iterate(callback, this.head, 0, this)
+    if (isListWithData(this) && this.head) iterate(callback, this.head, 0, this)
 
     return filteredList
   }
 
   toArray(): Array<T> {
-    const arr = []
+    const arr = [] as Array<T>
 
     this.forEach(node => arr.push(node.data))
 
