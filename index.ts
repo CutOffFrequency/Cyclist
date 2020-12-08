@@ -50,19 +50,16 @@ export interface EmptyList {
   tail: undefined
 }
 
+export interface ListWithData<T> {
+  size: 0
+  head: Node<T>
+  tail: Node<T>
+}
+
 export interface LinkedList<T> {
   size: number
   head?: Node<T>
   tail?: Node<T>
-}
-
-const isListWithData = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  list: LinkedList<any> | EmptyList
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): list is LinkedList<any> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (list as LinkedList<any>).size >= 1 && !!list.tail && !!list.head
 }
 
 export class LinkedList<T> implements Iterable<T> {
@@ -92,6 +89,12 @@ export class LinkedList<T> implements Iterable<T> {
     return iterableIterator
   }
 
+  isListWithData(
+    list: LinkedList<T> | EmptyList | ListWithData<T>
+  ): list is ListWithData<T> {
+    return (list as ListWithData<T>).size >= 1 && !!list.tail && !!list.head
+  }
+
   addFirst(data: T): ListSize {
     return this.insert(0, data)
   }
@@ -116,13 +119,13 @@ export class LinkedList<T> implements Iterable<T> {
   ): MaybeNode<T> {
     // the head should be accessible via a negative index with magnitude equal to the list size: this.size * -1
     if (
-      !isListWithData(this) ||
+      !this.isListWithData(this) ||
       targetIndex >= this.size ||
       Math.abs(targetIndex) > this.size
     )
       return
 
-    if (this.head && (targetIndex === 0 || targetIndex === this.size * -1))
+    if (targetIndex === 0 || targetIndex === this.size * -1)
       return callback(this.head)
 
     if (this.tail && (targetIndex === this.size - 1 || targetIndex === -1))
@@ -187,7 +190,7 @@ export class LinkedList<T> implements Iterable<T> {
 
     const previousNode = nextNode.previous()
 
-    if (isListWithData(this)) {
+    if (this.isListWithData(this)) {
       newNode.next = () => nextNode
       newNode.previous = () => previousNode
     }
@@ -240,7 +243,7 @@ export class LinkedList<T> implements Iterable<T> {
   }
 
   forEach(callback: IterationCallback<T>): void {
-    if (isListWithData(this) && this.head) {
+    if (this.isListWithData(this)) {
       const iterate = (
         callback: IterationCallback<T>,
         currentNode: Node<T>,
@@ -267,7 +270,7 @@ export class LinkedList<T> implements Iterable<T> {
   filter(callback: IterationPredicate<T>): LinkedList<T | unknown> {
     const filteredList = new LinkedList()
 
-    if (isListWithData(this) && this.head) {
+    if (this.isListWithData(this)) {
       const iterate = (
         callback: IterationPredicate<T>,
         currentNode: Node<T>,
