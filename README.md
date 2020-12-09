@@ -22,7 +22,7 @@ A list contains nodes that have a data property, The LinkedList class takes a ge
 
 Each node references a next and previous node via the `next` and `previous` properties.
 
-New lists can be instantiated with or without data. Thee following approaches are extensionally equivalent.
+New lists can be instantiated with or without data. The following approaches are extensionally equivalent.
 
 ```
 // instantiating an empty list first

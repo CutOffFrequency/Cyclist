@@ -83,7 +83,7 @@ export class LinkedList<T> implements Iterable<T> {
     if (targetIndex === 0 || targetIndex === this.size * -1)
       return callback(this.head)
 
-    if (this.tail && (targetIndex === this.size - 1 || targetIndex === -1))
+    if (targetIndex === this.size - 1 || targetIndex === -1)
       return callback(this.tail)
 
     const iterate = (
@@ -129,7 +129,7 @@ export class LinkedList<T> implements Iterable<T> {
   }
 
   insert(index: NodeIndex, data: T): ListSize {
-    if (index > this.size || index <= (this.size + 1) * -1) {
+    if (index > this.size || index < this.size * -1) {
       return this.size
     }
 
