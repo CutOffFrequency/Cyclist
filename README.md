@@ -89,7 +89,7 @@ Additionally, all nodes can be removed at once
 
 ```
 niceList.clear()
-niceList.size // 3
+niceList.size // 0
 ```
 
 Note: When Nodes are removed, they are unlinked from the surrounding nodes
