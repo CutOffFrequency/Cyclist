@@ -1,16 +1,14 @@
-## Doubly Linked List
-
-Doubly Linked List is a lightweight, dependency free linked list implementation in TypeScript.
+# Doubly Linked List
 
 ## About
 
-A list contains nodes that each have a data property, since the LinkedList class takes a generic type, the data property for each node will match a given type.
+Doubly Linked List is a lightweight, dependency free "cyclic" linked list implementation in TypeScript.
 
-```
-const sweetNode = new Node<number>({data: 1})
-```
+Head and tail nodes automatically reference each other. This allows for iteration over a cyclic data structure without having to deal with "index math".
 
-Each node references a next and previous node via the `next` and `previous` properties (an arrow function that returns the relevant node).
+The LinkedList class provides various methods for maintaining the list itself and accessing nodes (see `Usage` below).
+
+LinkedLists are iterable and can be instantiated with any iterable.
 
 ## Setting Up
 
@@ -20,31 +18,43 @@ install with your package manager of choice and import
 
 ## Usage
 
-new lists can be instantiated with or without existing nodes
+A list contains nodes that have a data property, The LinkedList class takes a generic type that will match the data property for each node.
+
+Each node references a next and previous node via the `next` and `previous` properties.
+
+New lists can be instantiated with or without data. Thee following approaches are extensionally equivalent.
 
 ```
+// instantiating an empty list first
 const niceList = new LinkedList()
+niceList.addLast(1)
+niceList.addLast(2)
+
+// instantiating a list with data from an iterable
+const equallyNiceList = new LinkedList([1, 2])
+const anotherEquallyNiceList = new LinkedList(equallyNiceList)
 ```
 
-# Adding nodes
+### Adding Nodes
 
-Nodes can be added to lists at the head, tail, or any given index
+Nodes can be added to lists at the head, tail, or any given index. New Nodes are created automatically by the insertion method with no requirement to manually instantiate a new node.
 
 ```
-// new Nodes are created automatically and will take the data as an argument
-// there is no need to manually create a new node
-niceList.insertAtHead(1) // list now has one node with data prop of 1
-niceList.insertAtTail(3) // list now has two nodes with data props of 1 and 3
-niceList.insertAtIndex(1, 2) // list now has three nodes with data props of 1, 2, and 3
+niceList.addFirst(1)
+niceList.size // 1
+niceList.addLast(3)
+niceList.size // 2
+niceList.insert(1, 2)
+niceList.size // 3
 ```
 
-# using nodes
+### Using Nodes
 
 Nodes can be accessed individually by Index
 
 ```
-// probably don't do this if the node's index will change
-const niceListHead = niceList.findNodeAtIndex(0)
+// maybe don't do this if the node's index will change
+const niceListHead = niceList.at(0)
 ```
 
 this method can also take a callback for side effects
@@ -55,29 +65,31 @@ const logNode = node => {
   return node
 }
 
-niceList.findAtIndex(0, logNode) // data: 1, next: [Node], previous: [Node]
+niceList.at(0, logNode) // data: 1, next: [Node], previous: [Node]
 ```
 
-a list can also be iterated over to execute side effects
+lists can also be iterated over to execute side effects (similar to `Array.forEach`)
 
 ```
-niceList.iterateOverList(logNode) // data: 1, next: [Node], previous: [Node]
+niceList.forEach(logNode) // data: 1, next: [Node], previous: [Node]
 // data: 2, next: [Node], previous: [Node]
 // data: 3, next: [Node], previous: [Node]
 ```
 
-# removing nodes
+### Removing Nodes
 
-Nodes are removed by a given index
-
-```
-niceList.removeAtIndex(1) // list now has 2 nodes with data props of 1 and 3
-```
-
-or all at once
+Specific nodes are removed by a given index
 
 ```
-niceList.emptyList() // list is empty
+niceList.remove(1)
+niceList.size // 2
 ```
 
-Note: When Nodes are removed, they are unlinked from the surrounding nodes automatically
+Additionally, all nodes can be removed at once
+
+```
+niceList.clear()
+niceList.size // 3
+```
+
+Note: When Nodes are removed, they are unlinked from the surrounding nodes

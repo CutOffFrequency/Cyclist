@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "lib": ["ES5","ES6","ES2015","ES7","ES2016","ES2017","ES2018","ESNext", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true
+  }
+}
