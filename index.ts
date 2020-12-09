@@ -110,7 +110,7 @@ export class LinkedList<T> implements Iterable<T> {
   // with a negative targetIndex - at iterates through the list "from right to left"
   // as a one based index: an index of -1 references the tail, an index of this.size * -1
   // references the head
-  // if a function is provided as an argument t0 the second parameter: callback, at returns
+  // if a function is provided as an argument to the second parameter: callback, at returns
   // the application of that function to the target node, otherwise at returns the node itself
   // if the targeted index is out of bounds, at returns undefined
   at(
@@ -170,7 +170,7 @@ export class LinkedList<T> implements Iterable<T> {
       }
     }
 
-    return iterate(targetIndex, (callback = node => node), 0, this.head)
+    return iterate(targetIndex, callback, 0, this.head)
   }
 
   insert(index: NodeIndex, data: T): ListSize {
@@ -179,9 +179,9 @@ export class LinkedList<T> implements Iterable<T> {
     }
 
     const newNode: Node<T> = new Node({data})
-
     let nextNode = newNode.next()
-    if (index === this.size && !!this.head) {
+
+    if (this.isListWithData(this) && index === this.size) {
       nextNode = this.head
     } else {
       const nodeAtIndex = this.at(index)
@@ -309,7 +309,9 @@ export class LinkedList<T> implements Iterable<T> {
     let includesDatum = false
 
     this.forEach(node => {
-      if (node.data === datum) includesDatum = true
+      if (node.data === datum) {
+        includesDatum = true
+      }
     })
 
     return includesDatum
@@ -317,12 +319,16 @@ export class LinkedList<T> implements Iterable<T> {
 
   slice(
     startIndex: NodeIndex,
-    endIndex: NodeIndex = this.size - 1
+    endIndex: NodeIndex = this.size
   ): LinkedList<T | unknown> {
     // normalize in case of negative values
-    if (startIndex < 0) startIndex = this.size - 1 + startIndex
-    if (endIndex < 0) startIndex = this.size - 1 + endIndex
+    if (startIndex < 0) {
+      startIndex = this.size + startIndex
+    }
+    if (endIndex < 0) {
+      endIndex = this.size + endIndex
+    }
 
-    return this.filter((cur, i) => i >= startIndex && i <= endIndex)
+    return this.filter((cur, i) => i >= startIndex && i < endIndex)
   }
 }

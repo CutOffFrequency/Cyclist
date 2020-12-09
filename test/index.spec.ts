@@ -326,11 +326,22 @@ describe('LinkedList', () => {
     const refObject = {prop: true}
     const objectsList = new LinkedList([refObject])
 
-    it('identifies if a list includes data that is strictly equal', () => {
+    const numbersList = new LinkedList([1, 2, 3])
+
+    it('correctly identifies the presence of primitives', () => {
+      assert.isTrue(numbersList.includes(1))
+      assert.isTrue(numbersList.includes(2))
+      assert.isTrue(numbersList.includes(3))
+
+      assert.isFalse(numbersList.includes(0))
+      assert.isFalse(numbersList.includes(4))
+    })
+
+    it('correctly identifies the presence of a strictly equal object', () => {
       assert.isTrue(objectsList.includes(refObject))
     })
 
-    it('does not identify if a list includes an object that is only loosely equal', () => {
+    it('does not identify the presence of a loosely equal', () => {
       assert.isFalse(objectsList.includes({prop: true}))
     })
   })
@@ -342,6 +353,7 @@ describe('LinkedList', () => {
     const subset2 = newList.slice(1)
     const subset3 = newList.slice(1, 2)
     const subset4 = newList.slice(-1)
+    const subset5 = newList.slice(-3, -1)
 
     const emptyList1 = newList.slice(4)
     const emptyList2 = newList.slice(-1, -2)
@@ -353,14 +365,18 @@ describe('LinkedList', () => {
 
       assert.equal(subset2.size, 3)
 
-      assert.equal(subset3.size, 2)
-      assert.equal(subset3.tail?.data, 3)
+      assert.equal(subset3.size, 1)
+      assert.equal(subset3.head?.data, 2)
 
-      assert.equal(subset4.size, 2)
+      assert.equal(subset4.size, 1)
       assert.equal(subset4.tail?.data, 4)
+
+      assert.equal(subset5.size, 2)
+      assert.equal(subset5.head?.data, 2)
+      assert.equal(subset5.tail?.data, 3)
     })
 
-    it('returns an empty list with invalid params', () => {
+    it('with invalid params, returns an empty list', () => {
       assert.equal(emptyList1.size, 0)
       assert.equal(emptyList2.size, 0)
       assert.equal(emptyList3.size, 0)
