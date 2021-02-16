@@ -10,6 +10,10 @@ The LinkedList class provides various methods for maintaining the list itself an
 
 LinkedLists are iterable and can be instantiated with any iterable.
 
+## Purpose
+
+This linked list implementation is intended for small sets of data that are cyclic in nature. It provides a convenient mechanism to access values by their relationship to each other (such as musical notes or intervals in the 12 tone equal temperment system)
+
 ## Setting Up
 
 install with your package manager of choice and import
