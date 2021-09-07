@@ -4,7 +4,7 @@
 
 Doubly Linked List is a lightweight, dependency free "cyclic" linked list implementation in TypeScript.
 
-Head and tail nodes automatically reference each other. This allows for iteration over a cyclic data structure without having to deal with "index math".
+Head and tail nodes automatically reference each other. This allows for simpler iteration over cyclic data structures.
 
 The LinkedList class provides various methods for maintaining the list itself and accessing nodes (see `Usage` below).
 
