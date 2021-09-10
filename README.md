@@ -1,8 +1,8 @@
-# Doubly Linked List
+# Cyclist
 
 ## About
 
-Doubly Linked List is a lightweight, dependency free "cyclic" linked list implementation in TypeScript.
+Cyclist is a lightweight, dependency free cyclical doubly linked list implementation in TypeScript.
 
 Head and tail nodes automatically reference each other. This allows for simpler iteration over cyclic data structures.
 
@@ -18,7 +18,7 @@ This linked list implementation is intended for small sets of data that are cycl
 
 install with your package manager of choice and import
 
-`import {LinkedList} from 'doublylinkedlist'`
+`import {LinkedList} from 'Cyclist'`
 
 ## Usage
 
