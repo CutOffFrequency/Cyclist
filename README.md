@@ -22,9 +22,7 @@ install with your package manager of choice and import
 
 ## Usage
 
-A list contains nodes that have a data property, The LinkedList class takes a generic type that will match the data property for each node.
-
-Each node references a next and previous node via the `next` and `previous` properties.
+A list contains nodes that have a data property and reference neighbor nodes via the `next` and `previous` properties.
 
 New lists can be instantiated with or without data. The following approaches are extensionally equivalent.
 
@@ -57,11 +55,10 @@ niceList.size // 3
 Nodes can be accessed individually by Index
 
 ```
-// maybe don't do this if the node's index will change
-const niceListHead = niceList.at(0)
+const sweetSecondNode = niceList.at(1)
 ```
 
-this method can also take a callback for side effects
+`at` will also accpet a callback for side effects
 
 ```
 const logNode = node => {
@@ -82,14 +79,14 @@ niceList.forEach(logNode) // data: 1, next: [Node], previous: [Node]
 
 ### Removing Nodes
 
-Specific nodes are removed by a given index
+Specific nodes can be removed by a given index
 
 ```
 niceList.remove(1)
 niceList.size // 2
 ```
 
-Additionally, all nodes can be removed at once
+... or all nodes can be removed at once
 
 ```
 niceList.clear()
